@@ -57,6 +57,15 @@ def root():
         return FileResponse(index_path, media_type="text/html")
     return {"status": "ok", "message": "index.html not found in template/"}
 
+@app.get("/bihar")
+def bihar_page():
+    return FileResponse(os.path.join(TEMPLATE_DIR, "bihar.html"))
+
+@app.get("/maharashtra")
+def maharashtra_page():
+    return FileResponse(os.path.join(TEMPLATE_DIR, "maharashtra.html"))
+
+
 @app.get("/health")
 def health():
     return {"status": "ok", "message": "Election Analyzer API is running"}
