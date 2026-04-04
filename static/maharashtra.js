@@ -436,7 +436,6 @@ async function checkApiStatus(){
 
 async function runPrediction(){
   const btn=document.getElementById('pred-run-btn');
-  // FIX: parse Age as integer with parseInt() to satisfy the API's int type requirement
   const inputData={
     state:'maharashtra',
     Age:parseInt(document.getElementById('pred-age').value, 10),
