@@ -11,6 +11,37 @@ from pydantic import BaseModel
 from typing import Optional
 import pickle, os, traceback
 import pandas as pd
+import numpy as np
+
+# ── Strategy tips lookup ──────────────────────────────────────────────────────
+AGE_TIPS = {
+    "18-19":      "Run social media campaigns (Instagram/YouTube); focus on education & first jobs.",
+    "20-29":      "Prioritise employment, startup support, and digital schemes.",
+    "30-39":      "Focus on housing, job security, and children's education.",
+    "40-49":      "Highlight economic stability, MSP for farmers, health insurance.",
+    "50-59":      "Push pension security, healthcare, and agricultural loan waivers.",
+    "60-69":      "Promote senior welfare, pension hike, free medical camps.",
+    "70 & Above": "Focus on elder care, pension reliability, and pilgrimage schemes.",
+}
+EDU_TIPS = {
+    "Not Gone to School":    "Hold community meetings; use local language and visuals.",
+    "Upto 9th":              "Use pamphlets and radio; keep messages simple.",
+    "10th Pass":             "Highlight skill development (ITI/polytechnic) and job schemes.",
+    "12th Pass":             "Push government job opportunities and coaching support.",
+    "Graduate":              "Focus on white-collar employment and digital services.",
+    "Post-Graduate":         "Highlight research funding and governance reforms.",
+    "Professional Education":"Engage via policy papers, industry events, and tax relief.",
+}
+OCC_TIPS = {
+    "Farmer":              "Announce MSP hike, irrigation schemes, crop insurance.",
+    "Labour":              "Promise minimum wage increase and MNREGA expansion.",
+    "Student":             "Offer free coaching, exam fee waivers, scholarships.",
+    "Housewife":           "Highlight women SHG support, gas subsidy, cash-transfer schemes.",
+    "Skilled Professional": "Promise easier business licenses and GST simplification.",
+    "Unemployed":          "Announce employment guarantee and skill training programs.",
+    "Government Employee": "Focus on pay-commission benefits and job security.",
+    "Business":            "Highlight lower taxes and ease-of-doing-business policies.",
+}
 
 app = FastAPI(title="Election Analyzer API", version="3.0")
 
@@ -28,6 +59,9 @@ TEMPLATE_DIR = os.path.join(BASE_DIR, "template")
 
 if os.path.exists(STATIC_DIR):
     app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+
+if os.path.exists(MODEL_DIR):
+    app.mount("/models", StaticFiles(directory=MODEL_DIR), name="models")
 
 _model_cache: dict = {}
 
@@ -49,6 +83,86 @@ def load_model(filename: str):
         model = pickle.load(f)
     _model_cache[filename] = model
     return model
+
+# ── Load data for suggestions ─────────────────────────────────────────────────
+BIHAR_DATA_PATH = os.path.join(MODEL_DIR, "bihar_election_dataset.csv")
+bihar_df = pd.read_csv(BIHAR_DATA_PATH) if os.path.exists(BIHAR_DATA_PATH) else None
+
+def get_suggestion_for_voter(party_name, voter_profile: dict):
+    """
+    Adapted from Streamlit code to calculate targeted suggestions.
+    """
+    if bihar_df is None:
+        return []
+
+    df = bihar_df
+    SEGMENT_MAP = {
+        "Caste":      voter_profile["Caste"],
+        "Age_Group":  voter_profile["Age_Group"],
+        "Gender":     voter_profile["Gender"],
+        "Geography":  voter_profile["Geography"],
+        "Education":  voter_profile["Education"],
+        "Occupation": voter_profile["Occupation"],
+    }
+
+    suggestions = []
+    for col, val in SEGMENT_MAP.items():
+        if not val: continue
+        seg = df[df[col] == val]
+        if len(seg) < 20: # Lower threshold than Streamlit for variety
+            continue
+
+        party_pct = (seg["Voted_Party"] == party_name).mean() * 100
+        total     = len(seg)
+
+        # best rival in this segment
+        rival_counts = seg[seg["Voted_Party"] != party_name]["Voted_Party"].value_counts()
+        if rival_counts.empty:
+            continue
+        rival      = rival_counts.idxmax()
+        rival_pct  = (seg["Voted_Party"] == rival).mean() * 100
+        gap        = round(rival_pct - party_pct, 1)
+
+        # build targeted tip
+        if col == "Caste":
+            tip = (f"Among {val} voters, {party_name} gets {party_pct:.0f}% vs "
+                   f"{rival}'s {rival_pct:.0f}%. Field candidates from the {val} community, "
+                   f"launch targeted welfare schemes, and engage local {val} leaders.")
+        elif col == "Age_Group":
+            base = AGE_TIPS.get(val, "Tailor outreach to this age group.")
+            tip  = f"Among {val} voters, {party_name} gets {party_pct:.0f}% vs {rival}'s {rival_pct:.0f}%. {base}"
+        elif col == "Gender":
+            base = ("Launch women-centric welfare schemes (cash transfers, SHGs, safety)."
+                    if val == "Female"
+                    else "Address male voter concerns around employment and security.")
+            tip  = f"Among {val} voters, {party_name} gets {party_pct:.0f}% vs {rival}'s {rival_pct:.0f}%. {base}"
+        elif col == "Geography":
+            tip  = (f"In {val} areas, {party_name} gets {party_pct:.0f}% vs {rival}'s {rival_pct:.0f}%. "
+                    f"Increase candidate visits, local infrastructure promises, and booth-level outreach.")
+        elif col == "Education":
+            base = EDU_TIPS.get(val, "Tailor messaging to this education level.")
+            tip  = f"Among {val}-educated voters, {party_name} gets {party_pct:.0f}% vs {rival}'s {rival_pct:.0f}%. {base}"
+        elif col == "Occupation":
+            base = OCC_TIPS.get(val, "Address key concerns of this group.")
+            tip  = f"Among {val} voters, {party_name} gets {party_pct:.0f}% vs {rival}'s {rival_pct:.0f}%. {base}"
+        else:
+            tip = f"{party_name} should focus more on {val} voters."
+
+        suggestions.append({
+            "dimension":   col,
+            "value":       val,
+            "party_pct":   round(party_pct, 1),
+            "rival":       rival,
+            "rival_pct":   round(rival_pct, 1),
+            "gap":         gap,
+            "total":       total,
+            "tip":         tip,
+            "winning":     bool(party_pct >= rival_pct),
+        })
+
+    # Sort: biggest gap first
+    suggestions.sort(key=lambda x: x["gap"], reverse=True)
+    return suggestions
 
 
 class VoterPredictionInput(BaseModel):
@@ -123,10 +237,14 @@ def bihar_voter_predict(data: VoterPredictionInput):
             proba_vals = model.predict_proba(features)[0]
             classes = estimator.classes_
             proba = {str(c): round(float(p) * 100, 1) for c, p in zip(classes, proba_vals)}
+        
+        suggestions = get_suggestion_for_voter(str(prediction), input_dict)
+
         return {
             "status": "success",
             "predicted_party": str(prediction),
-            "probabilities": proba
+            "probabilities": proba,
+            "suggestions": suggestions
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

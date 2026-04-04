@@ -10,17 +10,131 @@ const PARTY_COLORS = {
   'CPI':    { bg:'#fff8e1', color:'#92400e', dot:'#d97706' },
   'CPI(ML)(L)': { bg:'#dde8f5', color:'#1e40af', dot:'#3b82f6' },
   'Lok Janshakti Party(Ram Vilas)': { bg:'#ddf0fc', color:'#0369a1', dot:'#0ea5e9' },
+  // Bihar specific alliance blocks
+  'NDA':    { bg:'#fff1eb', color:'#e65100', dot:'#ff6b35' }, // Orange/Coral
+  'MGB':    { bg:'#e3f2fd', color:'#0d47a1', dot:'#2196f3' }, // Blue
+  'JSP':    { bg:'#f3e5f5', color:'#4a148c', dot:'#9c27b0' }, // Purple
+  'Others': { bg:'#f5f5f5', color:'#424242', dot:'#9e9e9e' }, // Grey
 };
+// ── Client-side strategy suggestion engine ────────────────────────────────────
+const AGE_TIPS = {
+  '18-19':      'Run social media campaigns (Instagram/YouTube); focus on education & first-time voter outreach.',
+  '20-29':      'Prioritise employment, startup support, and digital schemes.',
+  '30-39':      'Focus on housing, job security, and children\'s education.',
+  '40-49':      'Highlight economic stability, MSP for farmers, health insurance.',
+  '50-59':      'Push pension security, healthcare, and agricultural loan waivers.',
+  '60-69':      'Promote senior welfare, pension hike, and free medical camps.',
+  '70 & Above': 'Focus on elder care, pension reliability, and pilgrimage schemes.',
+};
+const EDU_TIPS = {
+  'Not Gone to School':    'Hold community meetings; use local language and visuals.',
+  'Upto 9th':              'Use pamphlets and radio; keep messages simple.',
+  '10th Pass':             'Highlight skill development (ITI/polytechnic) and job schemes.',
+  '12th Pass':             'Push government job opportunities and coaching support.',
+  'Graduate':              'Focus on white-collar employment and digital services.',
+  'Post-Graduate':         'Highlight research funding and governance reforms.',
+  'Professional Education':'Engage via policy papers, industry events, and tax-relief pledges.',
+};
+const OCC_TIPS = {
+  'Farmer':              'Announce MSP hike, irrigation schemes, and crop insurance.',
+  'Labour':              'Promise minimum-wage increases and MNREGA expansion.',
+  'Student':             'Offer free coaching, exam-fee waivers, and scholarships.',
+  'Housewife':           'Highlight SHG support, LPG subsidy, and cash-transfer schemes.',
+  'Skilled Professional':'Promise easier business licences and GST simplification.',
+  'Unemployed':          'Announce employment guarantees and skill-training programs.',
+  'Government Employee': 'Focus on pay-commission benefits and job security.',
+  'Business':            'Highlight lower taxes and ease-of-doing-business policies.',
+};
+
+let _biharCSVRows = null;   // cached after first fetch
+
+async function loadBiharCSV() {
+  if (_biharCSVRows) return _biharCSVRows;
+  try {
+    const res = await fetch('/models/bihar_election_dataset.csv');
+    const text = await res.text();
+    const lines = text.trim().split('\n');
+    const headers = lines[0].split(',').map(h => h.trim());
+    _biharCSVRows = lines.slice(1).map(line => {
+      const cols = line.split(',');
+      const row = {};
+      headers.forEach((h, i) => row[h] = (cols[i] || '').trim());
+      return row;
+    });
+    return _biharCSVRows;
+  } catch(e) { return null; }
+}
+
+function computeSuggestions(rows, predictedParty, voterProfile) {
+  const DIMS = {
+    Caste:      voterProfile.Caste,
+    Age_Group:  voterProfile.Age_Group,
+    Gender:     voterProfile.Gender,
+    Geography:  voterProfile.Geography,
+    Education:  voterProfile.Education,
+    Occupation: voterProfile.Occupation,
+  };
+  const suggestions = [];
+
+  for (const [col, val] of Object.entries(DIMS)) {
+    if (!val) continue;
+    const seg = rows.filter(r => r[col] === val);
+    if (seg.length < 20) continue;
+
+    const partyPct = (seg.filter(r => r.Voted_Party === predictedParty).length / seg.length) * 100;
+    const rivals = {};
+    seg.forEach(r => { if (r.Voted_Party !== predictedParty) rivals[r.Voted_Party] = (rivals[r.Voted_Party]||0)+1; });
+    if (!Object.keys(rivals).length) continue;
+    const rival = Object.entries(rivals).sort((a,b)=>b[1]-a[1])[0][0];
+    const rivalPct = (rivals[rival] / seg.length) * 100;
+    const gap = +(rivalPct - partyPct).toFixed(1);
+
+    let tip;
+    if (col === 'Caste') {
+      tip = `Among ${val} voters, ${predictedParty} gets ${partyPct.toFixed(0)}% vs ${rival}'s ${rivalPct.toFixed(0)}%. Field candidates from the ${val} community, launch targeted welfare schemes, and engage local ${val} leaders.`;
+    } else if (col === 'Age_Group') {
+      const base = AGE_TIPS[val] || 'Tailor outreach to this age group.';
+      tip = `Among ${val} voters, ${predictedParty} gets ${partyPct.toFixed(0)}% vs ${rival}'s ${rivalPct.toFixed(0)}%. ${base}`;
+    } else if (col === 'Gender') {
+      const base = val==='Female'
+        ? 'Launch women-centric welfare schemes (cash transfers, SHGs, safety).'
+        : 'Address male voter concerns around employment and security.';
+      tip = `Among ${val} voters, ${predictedParty} gets ${partyPct.toFixed(0)}% vs ${rival}'s ${rivalPct.toFixed(0)}%. ${base}`;
+    } else if (col === 'Geography') {
+      tip = `In ${val} areas, ${predictedParty} gets ${partyPct.toFixed(0)}% vs ${rival}'s ${rivalPct.toFixed(0)}%. Increase candidate visits, local infrastructure promises, and booth-level outreach.`;
+    } else if (col === 'Education') {
+      const base = EDU_TIPS[val] || 'Tailor messaging to this education level.';
+      tip = `Among ${val}-educated voters, ${predictedParty} gets ${partyPct.toFixed(0)}% vs ${rival}'s ${rivalPct.toFixed(0)}%. ${base}`;
+    } else if (col === 'Occupation') {
+      const base = OCC_TIPS[val] || 'Address key concerns of this group.';
+      tip = `Among ${val} voters, ${predictedParty} gets ${partyPct.toFixed(0)}% vs ${rival}'s ${rivalPct.toFixed(0)}%. ${base}`;
+    } else {
+      tip = `${predictedParty} should focus more on ${val} voters.`;
+    }
+
+    suggestions.push({
+      dimension: col, value: val,
+      party_pct: +partyPct.toFixed(1), rival, rival_pct: +rivalPct.toFixed(1),
+      gap, total: seg.length, tip, winning: partyPct >= rivalPct,
+    });
+  }
+
+  // losing segments first (biggest gap first)
+  suggestions.sort((a,b) => b.gap - a.gap);
+  return suggestions;
+}
+
+function initials(n){const p=n.trim().split(' ');return p.length===1?p[0].slice(0,2).toUpperCase():(p[0][0]+p[p.length-1][0]).toUpperCase();}
 const AVATAR_PALETTES = [
   ['#bfd7ea','#0a3d5c'],['#e0f5ec','#004f2d'],['#fde8e7','#7c1d1d'],
   ['#fff3e0','#7c2d12'],['#f3e8fd','#4c1d95'],['#ddeef7','#1e3a5f'],
   ['#e8f5e9','#1b4332'],['#fdf6b2','#7a4500'],
 ];
 function getAvatarStyle(n){return AVATAR_PALETTES[n.charCodeAt(0)%AVATAR_PALETTES.length];}
-function initials(n){const p=n.trim().split(' ');return p.length===1?p[0].slice(0,2).toUpperCase():(p[0][0]+p[p.length-1][0]).toUpperCase();}
 function getPartyStyle(p){return PARTY_COLORS[p]||{bg:'#f5f5f5',color:'#555',dot:'#888'};}
 function crimClass(n){const c=parseInt(n||0);if(c===0)return['criminal-none','✓ Clean'];if(c<=4)return['criminal-low',`⚠ ${c} Case${c>1?'s':''}`];return['criminal-high',`⛔ ${c} Cases`];}
 function assetDisplay(a){if(!a)return'Not Disclosed';const m=a.match(/~\s*([\d.]+\s*\w+)/);return m?'₹ '+m[1]:a.replace('Rs\u00a0','₹');}
+
 
 function buildDashboard(){
   const total=CANDIDATES.length;
@@ -207,9 +321,57 @@ async function runPrediction(){
         const sorted=Object.entries(data.probabilities).sort((a,b)=>b[1]-a[1]).slice(0,5);
         document.getElementById('proba-bars').innerHTML=sorted.map(([party,pct])=>`<div class="proba-row"><div class="proba-label" style="font-size:.7rem">${party.length>12?party.slice(0,12)+'…':party}</div><div class="proba-track"><div class="proba-fill" style="width:${pct}%;background:${getPartyStyle(party).dot}"></div></div><div class="proba-pct">${pct}%</div></div>`).join('');
       }
+
+      // Load CSV and compute suggestions client-side
+      const csvRows = await loadBiharCSV();
+      const voterProfile = { Age_Group:inputData.Age_Group, Gender:inputData.Gender, Geography:inputData.Geography, Caste:inputData.Caste, Education:inputData.Education, Occupation:inputData.Occupation };
+      const suggestions = csvRows
+        ? computeSuggestions(csvRows, data.predicted_party, voterProfile)
+        : (data.suggestions || []);
+
+      if(suggestions.length > 0){
+        renderSuggestions(suggestions, data.predicted_party);
+        document.getElementById('strategy-placeholder').style.display='none';
+      }
     }else{showResultError('Prediction error: '+data.message);}
   }catch(err){showResultError('Could not connect to the ML server.\nMake sure the FastAPI server is running on port 5000.');}
   finally{btn.textContent='🔮 Predict Voting Preference';btn.disabled=false;}
+}
+
+function renderSuggestions(suggestions, predictedParty){
+  const container = document.getElementById('strategy-suggestions');
+
+  container.innerHTML = suggestions.map(s => {
+    let cardBorder, statusBadge;
+    if (s.winning) {
+      cardBorder = '#0a8754';
+      statusBadge = `<span class="strategy-badge badge-winning">Leading</span>`;
+    } else {
+      const gap = s.gap;
+      cardBorder = gap > 15 ? '#c0392b' : gap > 8 ? '#b45309' : '#f59e0b';
+      statusBadge = `<span class="strategy-badge badge-losing" style="background:${cardBorder}15; color:${cardBorder}">Gap: +${gap}%</span>`;
+    }
+
+    const rivalStyle = getPartyStyle(s.rival);
+
+    return `
+      <div class="strategy-card" style="border-left: 5px solid ${cardBorder}">
+        <div class="strategy-card-header">
+          <div class="strategy-dimension">
+            <div class="dimension-label">${s.dimension}</div>
+            <div class="dimension-value">${s.value}</div>
+          </div>
+          <div class="strategy-stats">
+            <div class="stat-pill" style="background:${getPartyStyle(predictedParty).bg}; color:${getPartyStyle(predictedParty).color}">${predictedParty}: ${s.party_pct}%</div>
+            <div class="stat-vs">vs</div>
+            <div class="stat-pill" style="background:${rivalStyle.bg}; color:${rivalStyle.color}">${s.rival}: ${s.rival_pct}%</div>
+            ${statusBadge}
+          </div>
+        </div>
+        <div class="strategy-tip">${s.tip}</div>
+      </div>
+    `;
+  }).join('');
 }
 function showResultError(msg){
   const rb=document.getElementById('prediction-result');
