@@ -52,13 +52,13 @@ async function loadBiharCSV() {
   if (_biharCSVRows) return _biharCSVRows;
   try {
     const res = await fetch('/models/bihar_election_dataset.csv');
-    const text = await res.text();
+    const text = (await res.text()).replace(/\r\n/g, '\n').replace(/\r/g, '\n');
     const lines = text.trim().split('\n');
     const headers = lines[0].split(',').map(h => h.trim());
     _biharCSVRows = lines.slice(1).map(line => {
       const cols = line.split(',');
       const row = {};
-      headers.forEach((h, i) => row[h] = (cols[i] || '').trim());
+      headers.forEach((h, i) => row[h] = (cols[i] || '').trim().replace(/\r/g, ''));
       return row;
     });
     return _biharCSVRows;
