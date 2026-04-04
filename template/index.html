@@ -1,12 +1,56 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Election Analyser - Home</title>
-    <link rel="stylesheet" href="/static/style.css">
+    <title>Election Analyzer</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Space+Mono:wght@700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="../template/style.css">
 </head>
+
 <body>
-    <h1>Election Analyser</h1>
+
+    <header>
+        <h1 class="main-title">Election Analyzer</h1>
+        <nav class="nav-links">
+            <a href="index.html" class="active">Home</a>
+            <a href="bihar.html">Bihar</a>
+            <a href="maharashtra.html">Maharashtra</a>
+            <a href="all-india.html">All-India</a>
+        </nav>
+    </header>
+
+    <div class="stats-container">
+        <div class="stat-item">
+            <span class="stat-val num">751</span>
+            <span class="stat-label">Total Candidates</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-val num">03</span>
+            <span class="stat-label">Trained Models</span>
+        </div>
+    </div>
+
+    <main class="grid">
+        <a href="bihar.html" class="card">
+            <h2>Bihar</h2>
+            <p>Data insights and assembly predictions for the 2024 State Elections.</p>
+        </a>
+        <a href="maharashtra.html" class="card">
+            <h2>Maharashtra</h2>
+            <p>Data insights and assembly predictions for the 2024 State Elections.</p>
+        </a>
+        <a href="all-india.html" class="card">
+            <h2>All-India</h2>
+            <p>Explore win percentages and candidate success rates across the nation.</p>
+        </a>
+    </main>
+
+    <footer>Made with ❤️ by Data Decoders</footer>
+
 </body>
+
 </html>
