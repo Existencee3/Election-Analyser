@@ -8,10 +8,8 @@ import os
 
 app = FastAPI()
 
-# Mount the static files directory
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-# Helper function to serve HTML files from the template folder
 def get_html_page(filename: str):
     path = os.path.join("template", filename)
     if os.path.exists(path):
@@ -81,7 +79,7 @@ async def predict_bihar(voter_data: BiharVoter):
     except ValueError as e:
         return {
             "status": "error",
-            "message": f"Mapping error: {str(e)}.",
+            "message": f" error: {str(e)}.",
         }
     except Exception as e:
         return {
