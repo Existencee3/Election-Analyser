@@ -177,3 +177,8 @@ def generic_voter_predict(data: VoterPredictionInput):
         return maha_voter_predict(data)
     else:
         return bihar_voter_predict(data)
+    
+@app.get("/{full_path:path}")
+def serve_index_fallback(full_path: str):
+    index_path = os.path.join(TEMPLATE_DIR, "index.html")
+    return FileResponse(index_path, media_type="text/html")
