@@ -1,12 +1,226 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Election Analyser - Bihar</title>
-    <link rel="stylesheet" href="/static/bihar.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Election Analyzer — Bihar</title>
+  <link rel="stylesheet" href="css/state.css">
+  <style>
+    :root {
+      --accent: #2c5f4a;
+      --accent-mid: #4a8066;
+      --accent-light: #e8f0eb;
+    }
+
+    .hero {
+      background: linear-gradient(160deg, #1a4a2e 0%, #2a6b45 50%, #1e4a38 100%);
+    }
+  </style>
 </head>
+
 <body>
-    <h1>Bihar Election Analysis</h1>
+
+  <nav>
+    <div class="nav-left">
+      <a class="nav-back" href="index.html">← Back</a>
+      <div class="nav-title-block">
+        <div class="nav-page-title">Election Analyzer</div>
+        <div class="nav-page-sub">Bihar · General Elections</div>
+      </div>
+    </div>
+    <div class="nav-tabs">
+      <button class="nav-tab active" onclick="showPage('dashboard',this)">Dashboard</button>
+      <button class="nav-tab" onclick="showPage('candidates',this)">Candidates <span
+          class="nav-badge">496</span></button>
+      <button class="nav-tab" onclick="showPage('predictions',this)">Voter Predictions</button>
+    </div>
+  </nav>
+
+  <div id="page-dashboard" class="page active">
+    <div class="hero">
+      <div class="hero-inner">
+        <h1>Bihar<br><em>Political Intelligence</em></h1>
+        <p class="hero-desc">In-depth candidate profiling, financial analysis, and electoral intelligence across Bihar
+          constituencies.</p>
+        <div class="hero-stats">
+          <div class="hero-stat">
+            <div class="hero-stat-num" id="hs-total">496</div>
+            <div class="hero-stat-lbl">Candidates</div>
+          </div>
+          <div class="hero-stat">
+            <div class="hero-stat-num" id="hs-parties">—</div>
+            <div class="hero-stat-lbl">Parties</div>
+          </div>
+          <div class="hero-stat">
+            <div class="hero-stat-num" id="hs-clean">—</div>
+            <div class="hero-stat-lbl">Clean Record</div>
+          </div>
+          <div class="hero-stat">
+            <div class="hero-stat-num" id="hs-grads">—</div>
+            <div class="hero-stat-lbl">Graduates+</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-label">Overview</div>
+      <div class="section-title" style="margin-bottom:1.5rem;">Key <em>Metrics</em></div>
+      <div class="stat-grid" id="stat-grid"></div>
+      <div class="dash-grid">
+        <div class="chart-card">
+          <div class="chart-card-title">🏛️ Top Parties by Candidate Count</div>
+          <div class="bar-chart" id="party-chart"></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-card-title">🎓 Education Level Distribution</div>
+          <div class="bar-chart" id="edu-chart"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="page-candidates" class="page">
+    <div class="section">
+      <div class="section-label">Browse All</div>
+      <div class="section-title" style="margin-bottom:1.5rem;">Candidate <em>Profiles</em></div>
+      <div class="controls">
+        <div class="search-wrap">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="searchInput" placeholder="Search candidate name or party…"
+            oninput="filterCandidates()">
+        </div>
+        <select class="filter-select" id="partyFilter" onchange="filterCandidates()">
+          <option value="">All Parties</option>
+        </select>
+        <select class="filter-select" id="eduFilter" onchange="filterCandidates()">
+          <option value="">All Education</option>
+        </select>
+        <select class="filter-select" id="crimFilter" onchange="filterCandidates()">
+          <option value="">Criminal Cases</option>
+          <option value="0">No Cases (0)</option>
+          <option value="1">1–5 Cases</option>
+          <option value="5">5+ Cases</option>
+        </select>
+        <div class="results-count" id="results-count"></div>
+      </div>
+      <div class="cards-grid" id="candidates-grid"></div>
+      <div class="pagination" id="pagination"></div>
+    </div>
+  </div>
+
+  <div id="page-predictions" class="page">
+    <div class="section">
+      <div class="section-label">ML Powered</div>
+      <div class="section-title" style="margin-bottom:1.75rem;">Enter Voter <em>Demographics</em></div>
+
+      <div class="pred-layout">
+        <div>
+
+          <div class="pred-card">
+            <div class="pred-card-title">Enter Voter Demographics</div>
+            <div class="pred-card-sub">Fill in the demographic details to predict the likely party preference of this
+              voter profile.</div>
+            <div class="form-grid">
+              <div class="form-field">
+                <label class="form-label">Age Group</label>
+                <select class="form-select" id="pred-age">
+                  <option value="" disabled selected>Select</option>
+                  <option value="18-19">18–19</option>
+                  <option value="20-29">20–29</option>
+                  <option value="30-39">30–39</option>
+                  <option value="40-49">40–49</option>
+                  <option value="50-59">50–59</option>
+                  <option value="60-69">60–69</option>
+                  <option value="70 & Above">70 & Above</option>
+                </select>
+              </div>
+              <div class="form-field">
+                <label class="form-label">Gender</label>
+                <select class="form-select" id="pred-gender">
+                  <option value="" disabled selected>Select</option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                </select>
+              </div>
+              <div class="form-field">
+                <label class="form-label">Geography</label>
+                <select class="form-select" id="pred-geography">
+                  <option value="" disabled selected>Select</option>
+                  <option value="Rural">Rural</option>
+                  <option value="Urban">Urban</option>
+                </select>
+              </div>
+              <div class="form-field">
+                <label class="form-label">Caste</label>
+                <select class="form-select" id="pred-caste">
+                  <option value="" disabled selected>Select</option>
+                  <option value="SC">SC</option>
+                  <option value="EBC">EBC</option>
+                  <option value="OBC">OBC</option>
+                  <option value="General">General</option>
+                  <option value="Yadav">Yadav</option>
+                  <option value="Muslim">Muslim</option>
+                  <option value="ST">ST</option>
+                </select>
+              </div>
+              <div class="form-field">
+                <label class="form-label">Education</label>
+                <select class="form-select" id="pred-education">
+                  <option value="" disabled selected>Select</option>
+                  <option value="Not Gone to School">Not Gone to School</option>
+                  <option value="Upto 9th">Upto 9th</option>
+                  <option value="10th Pass">10th Pass</option>
+                  <option value="12th Pass">12th Pass</option>
+                  <option value="Graduate">Graduate</option>
+                  <option value="Post-Graduate">Post-Graduate</option>
+                  <option value="Professional Education">Professional Education</option>
+                </select>
+              </div>
+              <div class="form-field">
+                <label class="form-label">Occupation</label>
+                <select class="form-select" id="pred-occupation">
+                  <option value="" disabled selected>Select</option>
+                  <option value="Unemployed">Unemployed</option>
+                  <option value="Student">Student</option>
+                  <option value="Labour">Labour</option>
+                  <option value="Farmer">Farmer</option>
+                  <option value="Skilled Professional">Skilled Professional</option>
+                  <option value="Self Occupation & Small Shop">Self Occupation & Small Shop</option>
+                  <option value="Housewife">Housewife</option>
+                  <option value="Pvt. Service">Pvt. Service</option>
+                  <option value="Govt. Service">Govt. Service</option>
+                  <option value="Others">Others</option>
+                </select>
+              </div>
+            </div>
+            <button class="pred-btn" id="pred-run-btn" onclick="runPrediction()">Predict Voting Preference</button>
+
+            <div class="result-box" id="prediction-result">
+              <div class="result-label">Predicted Voting Preference</div>
+              <div class="result-party" id="predicted-party-text">—</div>
+              <div class="result-sub" id="result-sub-text"></div>
+              <div class="proba-bars" id="proba-bars"></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <div id="modal-overlay" onclick="closeModal(event)">
+    <div id="modal-box">
+      <button id="modal-close" onclick="closeModalDirect()">✕</button>
+      <div id="modal-content"></div>
+    </div>
+  </div>
+
+  <footer>
+    Made with ❤️ by <strong>Data Decoders</strong>
+  </footer>
+
+  <script src="js/bihar.js"></script>
 </body>
+
 </html>

@@ -1,0 +1,500 @@
+/* ── Election Analyzer — Index CSS ── */
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,500&family=Inter:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
+
+:root {
+  --bg: #f7f6f3;
+  --white: #ffffff;
+  --ink: #1a1a1a;
+  --ink-mid: #4a4a4a;
+  --ink-faint: #9a9a9a;
+  --accent: #2c5f4a;
+  --accent-light: #e8f0eb;
+  --accent-mid: #4a8066;
+  --border: #e2e0dc;
+  --border-strong: #c8c4be;
+  --shadow-sm: 0 1px 4px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.09);
+  --radius: 16px;
+  --radius-sm: 10px;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  min-height: 100vh;
+}
+
+/* ── HEADER ── */
+.site-header {
+  padding: 3rem 3rem 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  border-bottom: 1px solid var(--border);
+}
+
+.header-title {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(2.4rem, 5vw, 4rem);
+  font-weight: 700;
+  color: var(--ink);
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+.header-title em {
+  color: var(--accent);
+  font-style: italic;
+}
+
+.header-sub {
+  font-size: 1rem;
+  color: var(--ink-mid);
+  margin-top: 0.6rem;
+  font-weight: 300;
+  max-width: 500px;
+  line-height: 1.6;
+}
+
+/* ── HERO ── */
+.hero {
+  background: var(--accent);
+  padding: 4rem 3rem 4.5rem;
+  position: relative;
+}
+
+.hero-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.hero h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-weight: 700;
+  color: white;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  margin-bottom: 1.2rem;
+}
+
+.hero h1 em {
+  color: #a8d5bc;
+  font-style: italic;
+}
+
+.hero-sub {
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 1rem;
+  max-width: 480px;
+  line-height: 1.75;
+  font-weight: 300;
+  margin-bottom: 3rem;
+}
+
+.hero-states {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.state-card {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: var(--radius);
+  padding: 1.5rem 1.75rem;
+  min-width: 200px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.state-card:hover {
+  background: rgba(255, 255, 255, 0.18);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.state-icon {
+  font-size: 1.8rem;
+}
+
+.state-label {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: white;
+}
+
+.state-detail {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.state-arrow {
+  font-size: 0.82rem;
+  color: rgba(255, 255, 255, 0.8);
+  margin-top: 0.2rem;
+  font-weight: 500;
+}
+
+/* ── STATS ROW ── */
+.stats-row {
+  background: var(--white);
+  border-bottom: 1px solid var(--border);
+  padding: 1.75rem 3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3.5rem;
+  flex-wrap: wrap;
+}
+
+.stat-item {
+  text-align: center;
+}
+
+.stat-num {
+  font-family: 'DM Mono', monospace;
+  font-size: 2rem;
+  font-weight: 500;
+  color: var(--accent);
+  line-height: 1;
+}
+
+.stat-lbl {
+  font-size: 0.7rem;
+  color: var(--ink-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-top: 0.25rem;
+  font-weight: 500;
+}
+
+.stat-divider {
+  width: 1px;
+  height: 40px;
+  background: var(--border);
+}
+
+/* ── FEATURES ── */
+.features-wrap {
+  padding: 4rem 3rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.section-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 0.75rem;
+}
+
+.section-h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(1.6rem, 3.5vw, 2.4rem);
+  font-weight: 700;
+  color: var(--ink);
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.6rem;
+}
+
+.section-h2 span {
+  color: var(--accent);
+  font-style: italic;
+}
+
+.section-p {
+  color: var(--ink-mid);
+  font-size: 0.95rem;
+  max-width: 480px;
+  line-height: 1.75;
+  margin-bottom: 2.5rem;
+  font-weight: 300;
+}
+
+.feat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 1.25rem;
+}
+
+.feat-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.75rem;
+  transition: box-shadow 0.2s;
+}
+
+.feat-card:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.feat-num {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--ink-faint);
+  margin-bottom: 0.75rem;
+  letter-spacing: 0.04em;
+}
+
+.feat-icon-wrap {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  margin-bottom: 1rem;
+}
+
+.feat-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 0.5rem;
+}
+
+.feat-desc {
+  font-size: 0.84rem;
+  color: var(--ink-mid);
+  line-height: 1.7;
+  font-weight: 300;
+}
+
+/* ── STATE DEEP DIVES ── */
+.states-section {
+  padding: 1.5rem 3rem 5rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.state-deep-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: 1.5rem;
+}
+
+.state-deep-card {
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border);
+  text-decoration: none;
+  display: block;
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+
+.state-deep-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-3px);
+}
+
+.sdc-banner {
+  padding: 2rem;
+  position: relative;
+  min-height: 160px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.sdc-state-name {
+  font-family: 'Playfair Display', serif;
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: white;
+  letter-spacing: -0.02em;
+}
+
+.sdc-sub {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: 400;
+  margin-top: 0.2rem;
+}
+
+.sdc-tags {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.sdc-tag {
+  font-size: 0.62rem;
+  font-weight: 600;
+  padding: 0.2rem 0.6rem;
+  border-radius: 20px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.sdc-body {
+  background: var(--white);
+  padding: 1.5rem 2rem;
+}
+
+.sdc-desc {
+  font-size: 0.84rem;
+  color: var(--ink-mid);
+  line-height: 1.7;
+  margin-bottom: 1rem;
+  font-weight: 300;
+}
+
+.sdc-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--accent);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.sdc-cta::after {
+  content: '→';
+  transition: transform 0.2s;
+}
+
+.state-deep-card:hover .sdc-cta::after {
+  transform: translateX(3px);
+}
+
+/* ── ALL INDIA SECTION ── */
+.allindia-section {
+  padding: 1.5rem 3rem 4rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.allindia-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  text-decoration: none;
+  display: block;
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+
+.allindia-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-3px);
+}
+
+.allindia-banner {
+  background: linear-gradient(135deg, #1a2a5e, #2c5f9a);
+  padding: 2.5rem 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.allindia-title-wrap {}
+
+.allindia-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.9rem;
+  font-weight: 700;
+  color: white;
+  letter-spacing: -0.02em;
+}
+
+.allindia-sub {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.6);
+  margin-top: 0.2rem;
+}
+
+.allindia-icon {
+  font-size: 3rem;
+  opacity: 0.7;
+}
+
+.allindia-body {
+  padding: 1.5rem 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.allindia-desc {
+  font-size: 0.84rem;
+  color: var(--ink-mid);
+  line-height: 1.7;
+  font-weight: 300;
+  max-width: 500px;
+}
+
+.allindia-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: var(--accent);
+  color: white;
+  font-size: 0.82rem;
+  font-weight: 600;
+  padding: 0.6rem 1.25rem;
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+/* ── FOOTER ── */
+footer {
+  background: var(--ink);
+  color: rgba(255, 255, 255, 0.45);
+  text-align: center;
+  padding: 1.5rem 2rem;
+  font-size: 0.78rem;
+}
+
+footer strong {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 768px) {
+
+  .site-header,
+  .hero,
+  .features-wrap,
+  .states-section,
+  .allindia-section,
+  .stats-row {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+
+  .stat-divider {
+    display: none;
+  }
+
+  .stats-row {
+    gap: 1.5rem;
+  }
+
+  .state-deep-grid {
+    grid-template-columns: 1fr;
+  }
+}
