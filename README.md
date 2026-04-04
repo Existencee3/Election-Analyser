@@ -9,7 +9,7 @@
 ## Tech Stack
     * **Backend:** FastAPI, Uvicorn, Python
     * **Data & ML:** Pandas, NumPy, Scikit-learn
-    * **Frontend:** HTML, CSS, JavaScript, Jinja2
+    * **Frontend:** HTML, CSS, JavaScript, Jinja2{Template used in HTML}
 ## Installation
     ```Bash
     git clone https://github.com/Existencee3/Election-Analyser.git
