@@ -437,11 +437,11 @@ async function runPrediction(){
   const btn=document.getElementById('pred-run-btn');
   const inputData={
     state:'maharashtra',
-    Age_Group:document.getElementById('pred-age').value,
+    Age:document.getElementById('pred-age').value,
+    District:document.getElementById('pred-district').value,
     Gender:document.getElementById('pred-gender').value,
     Geography:document.getElementById('pred-geography').value,
     Caste:document.getElementById('pred-caste').value,
-    Education:document.getElementById('pred-education').value,
     Occupation:document.getElementById('pred-occupation').value
   };
   if(Object.entries(inputData).filter(([k])=>k!=='state').some(([,v])=>!v)){showResultError('Please fill in all demographic fields.');return;}

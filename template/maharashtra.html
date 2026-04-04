@@ -139,16 +139,49 @@
               voter profile.</div>
             <div class="form-grid">
               <div class="form-field">
-                <label class="form-label">Age Group</label>
-                <select class="form-select" id="pred-age">
-                  <option value="" disabled selected>Select</option>
-                  <option value="18-19">18–19</option>
-                  <option value="20-29">20–29</option>
-                  <option value="30-39">30–39</option>
-                  <option value="40-49">40–49</option>
-                  <option value="50-59">50–59</option>
-                  <option value="60-69">60–69</option>
-                  <option value="70 & Above">70 & Above</option>
+                <label class="form-label">Age (Years)</label>
+                <input type="number" class="form-select" id="pred-age" min="18" max="100" placeholder="e.g. 25">
+              </div>
+              <div class="form-field">
+                <label class="form-label">District</label>
+                <select class="form-select" id="pred-district">
+                  <option value="" disabled selected>Select District</option>
+                  <option value="Ahmednagar">Ahmednagar</option>
+                  <option value="Akola">Akola</option>
+                  <option value="Amravati">Amravati</option>
+                  <option value="Aurangabad">Aurangabad (Chh. Sambhajinagar)</option>
+                  <option value="Beed">Beed</option>
+                  <option value="Bhandara">Bhandara</option>
+                  <option value="Buldhana">Buldhana</option>
+                  <option value="Chandrapur">Chandrapur</option>
+                  <option value="Dhule">Dhule</option>
+                  <option value="Gadchiroli">Gadchiroli</option>
+                  <option value="Gondiya">Gondiya</option>
+                  <option value="Hingoli">Hingoli</option>
+                  <option value="Jalgaon">Jalgaon</option>
+                  <option value="Jalna">Jalna</option>
+                  <option value="Kolhapur">Kolhapur</option>
+                  <option value="Latur">Latur</option>
+                  <option value="Mumbai City">Mumbai City</option>
+                  <option value="Mumbai Suburban">Mumbai Suburban</option>
+                  <option value="Nagpur">Nagpur</option>
+                  <option value="Nanded">Nanded</option>
+                  <option value="Nandurbar">Nandurbar</option>
+                  <option value="Nashik">Nashik</option>
+                  <option value="Osmanabad">Osmanabad (Dharashiv)</option>
+                  <option value="Palghar">Palghar</option>
+                  <option value="Parbhani">Parbhani</option>
+                  <option value="Pune">Pune</option>
+                  <option value="Raigad">Raigad</option>
+                  <option value="Ratnagiri">Ratnagiri</option>
+                  <option value="Sangli">Sangli</option>
+                  <option value="Satara">Satara</option>
+                  <option value="Sindhudurg">Sindhudurg</option>
+                  <option value="Solapur">Solapur</option>
+                  <option value="Thane">Thane</option>
+                  <option value="Wardha">Wardha</option>
+                  <option value="Washim">Washim</option>
+                  <option value="Yavatmal">Yavatmal</option>
                 </select>
               </div>
               <div class="form-field">
@@ -173,26 +206,16 @@
                   <option value="" disabled selected>Select</option>
                   <option value="SC">SC</option>
                   <option value="ST">ST</option>
-                  <option value="OBC">OBC</option>
-                  <option value="General">General</option>
+                  <option value="NT_VJ">NT VJ</option>
                   <option value="Muslim">Muslim</option>
+                  <option value="Kunbi">Kunbi</option>
+                  <option value="OBC">OBC</option>
                   <option value="Maratha">Maratha</option>
-                  <option value="Brahmin">Brahmin</option>
+                  <option value="General">General</option>
+                  <option value="Others">Others</option>
                 </select>
               </div>
-              <div class="form-field">
-                <label class="form-label">Education</label>
-                <select class="form-select" id="pred-education">
-                  <option value="" disabled selected>Select</option>
-                  <option value="Not Gone to School">Not Gone to School</option>
-                  <option value="Upto 9th">Upto 9th</option>
-                  <option value="10th Pass">10th Pass</option>
-                  <option value="12th Pass">12th Pass</option>
-                  <option value="Graduate">Graduate</option>
-                  <option value="Post-Graduate">Post-Graduate</option>
-                  <option value="Professional Education">Professional Education</option>
-                </select>
-              </div>
+
               <div class="form-field">
                 <label class="form-label">Occupation</label>
                 <select class="form-select" id="pred-occupation">

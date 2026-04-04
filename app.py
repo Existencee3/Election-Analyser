@@ -8,6 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
+from typing import Optional
 import pickle, os, traceback
 import pandas as pd
 
@@ -35,7 +36,6 @@ def load_model(filename: str):
         return _model_cache[filename]
     path = os.path.join(MODEL_DIR, filename)
     
-    # Robust case-insensitive search if file doesn't exist at exact path
     if not os.path.exists(path):
         if os.path.exists(MODEL_DIR):
             for f in os.listdir(MODEL_DIR):
@@ -50,13 +50,23 @@ def load_model(filename: str):
     _model_cache[filename] = model
     return model
 
+
 class VoterPredictionInput(BaseModel):
     state: str
     Age_Group: str
     Gender: str
     Geography: str
     Caste: str
-    Education: str
+    Education: Optional[str] = None
+    Occupation: str
+
+class MahaVoterPredictionInput(BaseModel):
+    state: str
+    Age: int
+    District: str
+    Gender: str
+    Geography: str
+    Caste: str
     Occupation: str
 
 @app.get("/")
@@ -92,79 +102,78 @@ def model_status():
 def bihar_voter_predict(data: VoterPredictionInput):
     model = load_model("bihar_voter_prediction.pkl")
     if model is None:
-        raise HTTPException(503, "Bihar voter prediction model not found. Place 'bihar_voter_prediction.pkl' in the models/ folder.")
+        raise HTTPException(status_code=503, detail="Bihar model not found")
     try:
-        # Create DataFrame with exact column names and values from input
-        features = pd.DataFrame([{
+        input_dict = {
             "Age_Group": data.Age_Group.strip(),
             "Gender": data.Gender.strip(),
             "Geography": data.Geography.strip(),
-            "Caste": data.Caste.strip(),
-            "Education": data.Education.strip(),
+            "Education": (data.Education.strip() if data.Education else ""),
             "Occupation": data.Occupation.strip(),
-        }])
-        
+            "Caste": data.Caste.strip()
+        }
+        columns = ["Age_Group", "Gender", "Geography", "Education", "Occupation", "Caste"]
+        features = pd.DataFrame([input_dict])[columns]
         prediction = model.predict(features)[0]
         proba = None
-        
-        # Access classes from the last step of the pipeline
         estimator = model
-        if hasattr(model, "steps"): # It's a Pipeline
+        if hasattr(model, "steps"): 
             estimator = model.steps[-1][1]
-            
         if hasattr(estimator, "predict_proba"):
             proba_vals = model.predict_proba(features)[0]
-            classes = estimator.classes_ if hasattr(estimator, "classes_") else []
+            classes = estimator.classes_
             proba = {str(c): round(float(p) * 100, 1) for c, p in zip(classes, proba_vals)}
-        
         return {
             "status": "success",
             "predicted_party": str(prediction),
             "probabilities": proba
         }
     except Exception as e:
-        print(f"Prediction Error: {traceback.format_exc()}")
-        raise HTTPException(500, f"Prediction error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/maharashtra/predict_voter")
-def maha_voter_predict(data: VoterPredictionInput):
+def maha_voter_predict(data: MahaVoterPredictionInput):
     model = load_model("maharashtra_voter_prediction.pkl")
     if model is None:
-        raise HTTPException(503, "Maharashtra voter prediction model not found. Place 'maharashtra_voter_prediction.pkl' in the models/ folder.")
+        raise HTTPException(status_code=503, detail="Maharashtra model not found")
     try:
-        features = pd.DataFrame([{
-            "Age_Group": data.Age_Group.strip(),
-            "Gender": data.Gender.strip(),
-            "Geography": data.Geography.strip(),
-            "Caste": data.Caste.strip(),
-            "Education": data.Education.strip(),
-            "Occupation": data.Occupation.strip(),
-        }])
+        input_dict = {
+            "age": data.Age,
+            "gender": data.Gender.strip(),
+            "district": data.District.strip(),
+            "geography": data.Geography.strip(),
+            "caste": data.Caste.strip(),
+            "occupation": data.Occupation.strip()
+        }
+        if input_dict["caste"] == "OBC":
+            input_dict["caste"] = "Other OBC"
+        elif input_dict["caste"] == "General":
+            input_dict["caste"] = "Other General"
         
+        columns = ["age", "gender", "district", "geography", "caste", "occupation"]
+        features = pd.DataFrame([input_dict])[columns]
         prediction = model.predict(features)[0]
         proba = None
-        
         estimator = model
-        if hasattr(model, "steps"): # It's a Pipeline
+        if hasattr(model, "steps"): 
             estimator = model.steps[-1][1]
-            
         if hasattr(estimator, "predict_proba"):
             proba_vals = model.predict_proba(features)[0]
-            classes = estimator.classes_ if hasattr(estimator, "classes_") else []
+            classes = estimator.classes_
             proba = {str(c): round(float(p) * 100, 1) for c, p in zip(classes, proba_vals)}
-            
         return {
             "status": "success",
             "predicted_party": str(prediction),
             "probabilities": proba
         }
     except Exception as e:
-        print(f"Prediction Error: {traceback.format_exc()}")
-        raise HTTPException(500, f"Prediction error: {str(e)}")
+        print(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/predict")
 def generic_voter_predict(data: VoterPredictionInput):
     state = (data.state or "bihar").lower()
     if state == "maharashtra":
         return maha_voter_predict(data)
-    return bihar_voter_predict(data)
+    else:
+        return bihar_voter_predict(data)
