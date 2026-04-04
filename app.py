@@ -1,9 +1,22 @@
 import joblib
 import pandas as pd
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.responses import HTMLResponse, FileResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
+import os
 
 app = FastAPI()
+
+# Mount the static files directory
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+# Helper function to serve HTML files from the template folder
+def get_html_page(filename: str):
+    path = os.path.join("template", filename)
+    if os.path.exists(path):
+        return FileResponse(path)
+    return HTMLResponse(content="<h1>404 Not Found</h1>", status_code=404)
 
 class BiharVoter(BaseModel):
     Age_Group: str
@@ -28,13 +41,11 @@ bihar_model = joblib.load("models/Bihar_voter_prediction.pkl")
 
 @app.get("/")
 async def root():
-    status = "active"
-    available_models = ["bihar", "maharashtra"]
-    response = {
-        "status": status,
-        "models": available_models
-    }
-    return response
+    return FileResponse("template/index.html")
+
+@app.get("/{filename}.html")
+async def serve_html(filename: str):
+    return get_html_page(f"{filename}.html")
 
 @app.post("/bihar")
 async def predict_bihar(voter_data: BiharVoter):
@@ -43,7 +54,7 @@ async def predict_bihar(voter_data: BiharVoter):
         
         voter_info = voter_data.model_dump()
         
-        info = {
+        normalized_info = {
             "Age_Group": voter_info["Age_Group"],
             "Gender": voter_info["Gender"].title(),
             "Geography": voter_info["Geography"].title(),
@@ -53,7 +64,7 @@ async def predict_bihar(voter_data: BiharVoter):
         }
 
         
-        input_df = pd.DataFrame([info])
+        input_df = pd.DataFrame([normalized_info])
         input_df = input_df[['Age_Group', 'Gender', 'Geography', 'Education', 'Occupation', 'Caste']]
 
         prediction = bihar_model.predict(input_df)
@@ -64,7 +75,7 @@ async def predict_bihar(voter_data: BiharVoter):
             "prediction": {
                 "voted_party": predicted_party
             },
-            "parameters_used": info
+            "parameters_used": normalized_info
         }
 
     except ValueError as e:
