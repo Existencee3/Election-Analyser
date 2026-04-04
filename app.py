@@ -34,6 +34,15 @@ def load_model(filename: str):
     if filename in _model_cache:
         return _model_cache[filename]
     path = os.path.join(MODEL_DIR, filename)
+    
+    # Robust case-insensitive search if file doesn't exist at exact path
+    if not os.path.exists(path):
+        if os.path.exists(MODEL_DIR):
+            for f in os.listdir(MODEL_DIR):
+                if f.lower() == filename.lower():
+                    path = os.path.join(MODEL_DIR, f)
+                    break
+    
     if not os.path.exists(path):
         return None
     with open(path, "rb") as f:
@@ -85,27 +94,37 @@ def bihar_voter_predict(data: VoterPredictionInput):
     if model is None:
         raise HTTPException(503, "Bihar voter prediction model not found. Place 'bihar_voter_prediction.pkl' in the models/ folder.")
     try:
+        # Create DataFrame with exact column names and values from input
         features = pd.DataFrame([{
-            "Age_Group": data.Age_Group,
-            "Gender": data.Gender,
-            "Geography": data.Geography,
-            "Caste": data.Caste,
-            "Education": data.Education,
-            "Occupation": data.Occupation,
+            "Age_Group": data.Age_Group.strip(),
+            "Gender": data.Gender.strip(),
+            "Geography": data.Geography.strip(),
+            "Caste": data.Caste.strip(),
+            "Education": data.Education.strip(),
+            "Occupation": data.Occupation.strip(),
         }])
+        
         prediction = model.predict(features)[0]
         proba = None
-        if hasattr(model, "predict_proba"):
+        
+        # Access classes from the last step of the pipeline
+        estimator = model
+        if hasattr(model, "steps"): # It's a Pipeline
+            estimator = model.steps[-1][1]
+            
+        if hasattr(estimator, "predict_proba"):
             proba_vals = model.predict_proba(features)[0]
-            classes = model.classes_ if hasattr(model, "classes_") else []
+            classes = estimator.classes_ if hasattr(estimator, "classes_") else []
             proba = {str(c): round(float(p) * 100, 1) for c, p in zip(classes, proba_vals)}
+        
         return {
             "status": "success",
             "predicted_party": str(prediction),
             "probabilities": proba
         }
     except Exception as e:
-        raise HTTPException(500, f"Prediction error: {traceback.format_exc()}")
+        print(f"Prediction Error: {traceback.format_exc()}")
+        raise HTTPException(500, f"Prediction error: {str(e)}")
 
 @app.post("/maharashtra/predict_voter")
 def maha_voter_predict(data: VoterPredictionInput):
@@ -114,26 +133,34 @@ def maha_voter_predict(data: VoterPredictionInput):
         raise HTTPException(503, "Maharashtra voter prediction model not found. Place 'maharashtra_voter_prediction.pkl' in the models/ folder.")
     try:
         features = pd.DataFrame([{
-            "Age_Group": data.Age_Group,
-            "Gender": data.Gender,
-            "Geography": data.Geography,
-            "Caste": data.Caste,
-            "Education": data.Education,
-            "Occupation": data.Occupation,
+            "Age_Group": data.Age_Group.strip(),
+            "Gender": data.Gender.strip(),
+            "Geography": data.Geography.strip(),
+            "Caste": data.Caste.strip(),
+            "Education": data.Education.strip(),
+            "Occupation": data.Occupation.strip(),
         }])
+        
         prediction = model.predict(features)[0]
         proba = None
-        if hasattr(model, "predict_proba"):
+        
+        estimator = model
+        if hasattr(model, "steps"): # It's a Pipeline
+            estimator = model.steps[-1][1]
+            
+        if hasattr(estimator, "predict_proba"):
             proba_vals = model.predict_proba(features)[0]
-            classes = model.classes_ if hasattr(model, "classes_") else []
+            classes = estimator.classes_ if hasattr(estimator, "classes_") else []
             proba = {str(c): round(float(p) * 100, 1) for c, p in zip(classes, proba_vals)}
+            
         return {
             "status": "success",
             "predicted_party": str(prediction),
             "probabilities": proba
         }
     except Exception as e:
-        raise HTTPException(500, f"Prediction error: {traceback.format_exc()}")
+        print(f"Prediction Error: {traceback.format_exc()}")
+        raise HTTPException(500, f"Prediction error: {str(e)}")
 
 @app.post("/predict")
 def generic_voter_predict(data: VoterPredictionInput):
