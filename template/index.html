@@ -1,12 +1,191 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Election Analyser - Home</title>
-    <link rel="stylesheet" href="/static/style.css">
+    <title>Election Analyzer — India Election Intelligence</title>
+    <link rel="stylesheet" href="static/index.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Election Analyzer</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Space+Mono:wght@700&display=swap"
+        rel="stylesheet">
+
+    <link rel="stylesheet" href="static/index.css">
+
 </head>
+
 <body>
-    <h1>Election Analyser</h1>
+    <header class="site-header">
+        <div class="header-title">Election <em>Analyzer</em></div>
+        <div class="header-sub">Candidate profiles, voter predictions, and deep electoral analysis — state by state.
+        </div>
+    </header>
+
+    <section class="hero">
+        <div class="hero-inner">
+            <h1>India's Elections,<br><em>Intelligently Decoded</em></h1>
+            <p class="hero-sub">Explore candidate data, predict voter preferences with ML models, and analyse electoral
+                trends
+                across Indian states.</p>
+
+            <div class="hero-states">
+                <a href="/bihar" class="state-card">
+                    <div class="state-icon"><img src="static/images/bihar-map.jpg" alt="Bihar Map"
+                            style="width:48px;height:48px;object-fit:cover;border-radius:8px;"></div>
+                    <div class="state-label">Bihar</div>
+                    <div class="state-detail">496 Candidates · General Elections</div>
+                    <div class="state-arrow">Explore →</div>
+                </a>
+                <a href="/maharashtra" class="state-card">
+                    <div class="state-icon"><img src="static/images/maharashtra-map.png" alt="Maharashtra Map"
+                            style="width:48px;height:48px;object-fit:cover;border-radius:8px;"></div>
+                    <div class="state-label">Maharashtra</div>
+                    <div class="state-detail">255 Candidates · Assembly 2024</div>
+                    <div class="state-arrow">Explore →</div>
+                </a>
+                <a href="all-india.html" class="state-card">
+                    <div class="state-icon"><img src="static/images/india-map.png" alt="India Map"
+                            style="width:48px;height:48px;object-fit:cover;border-radius:8px;"></div>
+                    <div class="state-label">All India</div>
+                    <div class="state-detail">General Elections · Win Percentage</div>
+                    <div class="state-arrow">Explore →</div>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <div class="stats-row">
+        <div class="stat-item">
+            <div class="stat-num">751</div>
+            <div class="stat-lbl">Total Candidates</div>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+            <div class="stat-num">3</div>
+            <div class="stat-lbl">States / Datasets</div>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+            <div class="stat-num">2</div>
+            <div class="stat-lbl">ML Models</div>
+        </div>
+    </div>
+
+    <div class="features-wrap">
+        <div class="section-label">Platform Features</div>
+        <h2 class="section-h2">Everything you need to<br><span>analyse elections</span></h2>
+        <p class="section-p">Three powerful modules — backed by a FastAPI ML backend for real predictions from your
+            trained
+            models.</p>
+
+        <div class="feat-grid">
+            <div class="feat-card">
+                <div class="feat-num">01</div>
+                <div class="feat-title">Dashboard</div>
+                <div class="feat-desc">Party distribution charts, education breakdowns, criminal case analysis, and
+                    asset
+                    overview — computed live from candidate data.</div>
+            </div>
+            <div class="feat-card">
+                <div class="feat-num">02</div>
+                <div class="feat-title">Candidate Profiles</div>
+                <div class="feat-desc">Browse, search, and filter all candidates. Click any card to view a full profile
+                    with
+                    party, education, assets, and criminal case details.</div>
+            </div>
+            <div class="feat-card">
+                <div class="feat-num">03</div>
+                <div class="feat-title">Voter Predictions</div>
+                <div class="feat-desc">Enter voter demographics — age, caste, geography, occupation — and the ML model
+                    predicts
+                    which party they're likely to support.</div>
+            </div>
+            <div class="feat-card">
+                <div class="feat-num">04</div>
+                <div class="feat-title">All-India Analysis</div>
+                <div class="feat-desc">National election candidate win percentages across constituencies — once you
+                    provide the
+                    data, this section becomes a full analytical suite.</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="states-section">
+        <div class="section-label">State Intelligence</div>
+        <h2 class="section-h2">Explore by <span>State</span></h2>
+        <p class="section-p">Each state page has a complete analytics suite with its own ML models.</p>
+
+        <div class="state-deep-grid">
+            <a href="/bihar" class="state-deep-card">
+                <div class="sdc-banner" style="background:linear-gradient(135deg,#1a4a2e,#2c7a50)">
+                    <div>
+                        <div class="sdc-state-name">Bihar</div>
+                        <div class="sdc-sub">General Elections · Parliamentary Constituencies</div>
+                    </div>
+                    <div class="sdc-tags">
+                        <span class="sdc-tag" style="background:rgba(255,255,255,.15);color:white">496 Candidates</span>
+                        <span class="sdc-tag" style="background:rgba(255,255,255,.1);color:rgba(255,255,255,.8)">ML
+                            Predictions</span>
+                    </div>
+                </div>
+                <div class="sdc-body">
+                    <p class="sdc-desc">Complete Bihar election dataset with party distribution, constituency-level
+                        analysis,
+                        voter demographic prediction engine, and candidate profiles.</p>
+                    <span class="sdc-cta">Open Bihar Intelligence </span>
+                </div>
+            </a>
+            <a href="/maharashtra" class="state-deep-card">
+                <div class="sdc-banner" style="background:linear-gradient(135deg,#1a3a5c,#2c6090)">
+                    <div>
+                        <div class="sdc-state-name">Maharashtra</div>
+                        <div class="sdc-sub">Assembly 2024 · State Constituencies</div>
+                    </div>
+                    <div class="sdc-tags">
+                        <span class="sdc-tag" style="background:rgba(255,255,255,.15);color:white">255 Candidates</span>
+                        <span class="sdc-tag" style="background:rgba(255,255,255,.1);color:rgba(255,255,255,.8)">ML
+                            Predictions</span>
+                    </div>
+                </div>
+                <div class="sdc-body">
+                    <p class="sdc-desc">Maharashtra Assembly 2024 covering BJP, Shiv Sena factions, NCP factions, INC
+                        and regional
+                        parties across all constituencies.</p>
+                    <span class="sdc-cta">Open Maharashtra Intelligence </span>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <div class="allindia-section">
+        <div class="section-label">National Dataset</div>
+        <h2 class="section-h2">All-India <span>Election Results</span></h2>
+        <p class="section-p">Candidate win percentage data across general election constituencies.</p>
+
+        <a href="all-india.html" class="allindia-card">
+            <div class="allindia-banner">
+                <div class="allindia-title-wrap">
+                    <div class="allindia-title">All-India Elections</div>
+                    <div class="allindia-sub">Candidate Win Percentage · General Elections</div>
+                </div>
+                <div class="allindia-icon">🗺️</div>
+            </div>
+            <div class="allindia-body">
+                <p class="allindia-desc">Explore national election candidate win percentages across constituencies. Data
+                    will be
+                    populated once the dataset is provided.</p>
+                <span class="allindia-cta">Open All-India View →</span>
+            </div>
+        </a>
+    </div>
+
+    <footer>
+        Made with ❤️ by <strong>Data Decoders</strong>
+    </footer>
+
 </body>
+
 </html>

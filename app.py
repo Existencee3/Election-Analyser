@@ -1,31 +1,170 @@
-import os
-import joblib
-import pandas as pd
-import numpy as np
-from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse
+"""
+Run with:
+    uvicorn api:app --reload --port 5000
+"""
+
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
-import uvicorn
+import pickle, os, traceback
+import pandas as pd
 
-app = FastAPI()
+app = FastAPI(title="Election Analyzer API", version="3.0")
 
-app.mount("/static", StaticFiles(directory="static"), name="static")
-templates = Jinja2Templates(directory="template")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-class SurveyData(BaseModel):
-    region: str
-    district: str
-    geography: str
-    gender: str
-    age_band: str
-    age: float
-    caste: str
-    occupation: str
-    cm_preference: str
-    voting_reason: str
+BASE_DIR   = os.path.dirname(__file__)
+MODEL_DIR  = os.path.join(BASE_DIR, "models")
+STATIC_DIR = os.path.join(BASE_DIR, "static")
+TEMPLATE_DIR = os.path.join(BASE_DIR, "template")
 
-# model = joblib.load("models/model.pkl")
+if os.path.exists(STATIC_DIR):
+    app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
-uvicorn.run(app, host="0.0.0.0", port=8000)
+_model_cache: dict = {}
+
+def load_model(filename: str):
+    if filename in _model_cache:
+        return _model_cache[filename]
+    path = os.path.join(MODEL_DIR, filename)
+    
+    # Robust case-insensitive search if file doesn't exist at exact path
+    if not os.path.exists(path):
+        if os.path.exists(MODEL_DIR):
+            for f in os.listdir(MODEL_DIR):
+                if f.lower() == filename.lower():
+                    path = os.path.join(MODEL_DIR, f)
+                    break
+    
+    if not os.path.exists(path):
+        return None
+    with open(path, "rb") as f:
+        model = pickle.load(f)
+    _model_cache[filename] = model
+    return model
+
+class VoterPredictionInput(BaseModel):
+    state: str
+    Age_Group: str
+    Gender: str
+    Geography: str
+    Caste: str
+    Education: str
+    Occupation: str
+
+@app.get("/")
+def root():
+    index_path = os.path.join(TEMPLATE_DIR, "index.html")
+    if os.path.exists(index_path):
+        return FileResponse(index_path, media_type="text/html")
+    return {"status": "ok", "message": "index.html not found in template/"}
+
+@app.get("/bihar")
+def bihar_page():
+    return FileResponse(os.path.join(TEMPLATE_DIR, "bihar.html"))
+
+@app.get("/maharashtra")
+def maharashtra_page():
+    return FileResponse(os.path.join(TEMPLATE_DIR, "maharashtra.html"))
+
+
+@app.get("/health")
+def health():
+    return {"status": "ok", "message": "Election Analyzer API is running"}
+
+@app.get("/models/status")
+def model_status():
+    files = os.listdir(MODEL_DIR) if os.path.exists(MODEL_DIR) else []
+    pkl_files = [f for f in files if f.endswith(".pkl")]
+    return {
+        "available_models": pkl_files,
+        "model_dir": MODEL_DIR
+    }
+
+@app.post("/bihar/predict_voter")
+def bihar_voter_predict(data: VoterPredictionInput):
+    model = load_model("bihar_voter_prediction.pkl")
+    if model is None:
+        raise HTTPException(503, "Bihar voter prediction model not found. Place 'bihar_voter_prediction.pkl' in the models/ folder.")
+    try:
+        # Create DataFrame with exact column names and values from input
+        features = pd.DataFrame([{
+            "Age_Group": data.Age_Group.strip(),
+            "Gender": data.Gender.strip(),
+            "Geography": data.Geography.strip(),
+            "Caste": data.Caste.strip(),
+            "Education": data.Education.strip(),
+            "Occupation": data.Occupation.strip(),
+        }])
+        
+        prediction = model.predict(features)[0]
+        proba = None
+        
+        # Access classes from the last step of the pipeline
+        estimator = model
+        if hasattr(model, "steps"): # It's a Pipeline
+            estimator = model.steps[-1][1]
+            
+        if hasattr(estimator, "predict_proba"):
+            proba_vals = model.predict_proba(features)[0]
+            classes = estimator.classes_ if hasattr(estimator, "classes_") else []
+            proba = {str(c): round(float(p) * 100, 1) for c, p in zip(classes, proba_vals)}
+        
+        return {
+            "status": "success",
+            "predicted_party": str(prediction),
+            "probabilities": proba
+        }
+    except Exception as e:
+        print(f"Prediction Error: {traceback.format_exc()}")
+        raise HTTPException(500, f"Prediction error: {str(e)}")
+
+@app.post("/maharashtra/predict_voter")
+def maha_voter_predict(data: VoterPredictionInput):
+    model = load_model("maharashtra_voter_prediction.pkl")
+    if model is None:
+        raise HTTPException(503, "Maharashtra voter prediction model not found. Place 'maharashtra_voter_prediction.pkl' in the models/ folder.")
+    try:
+        features = pd.DataFrame([{
+            "Age_Group": data.Age_Group.strip(),
+            "Gender": data.Gender.strip(),
+            "Geography": data.Geography.strip(),
+            "Caste": data.Caste.strip(),
+            "Education": data.Education.strip(),
+            "Occupation": data.Occupation.strip(),
+        }])
+        
+        prediction = model.predict(features)[0]
+        proba = None
+        
+        estimator = model
+        if hasattr(model, "steps"): # It's a Pipeline
+            estimator = model.steps[-1][1]
+            
+        if hasattr(estimator, "predict_proba"):
+            proba_vals = model.predict_proba(features)[0]
+            classes = estimator.classes_ if hasattr(estimator, "classes_") else []
+            proba = {str(c): round(float(p) * 100, 1) for c, p in zip(classes, proba_vals)}
+            
+        return {
+            "status": "success",
+            "predicted_party": str(prediction),
+            "probabilities": proba
+        }
+    except Exception as e:
+        print(f"Prediction Error: {traceback.format_exc()}")
+        raise HTTPException(500, f"Prediction error: {str(e)}")
+
+@app.post("/predict")
+def generic_voter_predict(data: VoterPredictionInput):
+    state = (data.state or "bihar").lower()
+    if state == "maharashtra":
+        return maha_voter_predict(data)
+    return bihar_voter_predict(data)
